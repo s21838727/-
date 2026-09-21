@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>回憶小時候沙鹿屏西店飲料店 互動點餐系統</title>
+<style>
+:root{--green:#176b50;--light:#f3f6f3;--orange:#f2a65a;--ink:#24332c}
+*{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei",Arial,sans-serif;background:var(--light);color:var(--ink)}
+header{background:var(--green);color:white;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{margin:0;font-size:24px}header small{opacity:.85}
+main{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(310px,1fr);gap:18px;padding:18px;max-width:1500px;margin:auto}
+.panel{background:white;border-radius:16px;padding:18px;box-shadow:0 4px 16px #1c3b2b0d}
+h2{margin:0 0 14px;font-size:20px}
+.categories{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:10px 14px;transition:.15s}
+button:focus{outline:3px solid #f2a65a88}
+.cat{background:#edf2ee;color:var(--green);font-weight:700}.cat.active{background:var(--green);color:white}
+.menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.drink{border:1px solid #e4ebe5;border-radius:14px;padding:14px;text-align:left;background:#fff;min-height:140px;display:flex;flex-direction:column;justify-content:space-between}
+.drink:hover{border-color:var(--green);transform:translateY(-2px);box-shadow:0 6px 15px #163c2912}
+.emoji{font-size:30px}.drink-name{font-weight:800;margin:7px 0}.price{color:var(--green);font-weight:800}
+.cart-head{display:flex;justify-content:space-between;align-items:center}
+.cart-items{display:flex;flex-direction:column;gap:10px;max-height:48vh;overflow:auto}
+.empty{color:#7a8980;text-align:center;padding:35px 8px}
+.cart-item{border:1px solid #e8eee9;border-radius:12px;padding:12px}
+.item-top{display:flex;justify-content:space-between;gap:10px;font-weight:700}
+.item-sub{font-size:13px;color:#68766e;margin:6px 0}
+.item-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.qty{background:#edf2ee;padding:5px 11px;font-weight:800}.remove{background:#fff0ee;color:#b83a2b;padding:6px 10px;margin-left:auto}
+.summary{border-top:1px solid #e6ece7;margin-top:14px;padding-top:14px}
+.row{display:flex;justify-content:space-between;margin:8px 0}.total{font-size:24px;font-weight:900;color:var(--green)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.clear{background:#edf0ed;color:#4a5a50}.checkout{background:var(--orange);color:#38230e;font-weight:900}
+.note{font-size:12px;color:#718077;margin-top:12px;line-height:1.6}
+.modal-backdrop{position:fixed;inset:0;background:#10221988;display:none;align-items:center;justify-content:center;padding:16px;z-index:5}
+.modal{background:white;border-radius:18px;padding:22px;width:min(460px,100%);box-shadow:0 20px 60px #0003}
+.modal h2{margin-bottom:4px}.muted{color:#738078;font-size:13px;margin-bottom:15px}
+.field{margin:13px 0}.field label{display:block;font-weight:700;margin-bottom:7px}
+.options{display:flex;gap:7px;flex-wrap:wrap}.opt{background:#eef2ef;color:#35463b}.opt.selected{background:var(--green);color:white}
+select,input{font:inherit;padding:10px;border:1px solid #d9e2db;border-radius:9px;width:100%}
+.modal-actions{display:flex;gap:8px;margin-top:20px}.modal-actions button{flex:1}
+.cancel{background:#edf0ed}.add{background:var(--green);color:white;font-weight:800}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#24332c;color:white;padding:12px 18px;border-radius:12px;display:none;z-index:10}
+@media(max-width:850px){main{grid-template-columns:1fr;padding:10px}.cart-items{max-height:none}}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>🥤 回憶小時候沙鹿屏西店｜點餐系統</h1><small>點餐・甜度冰塊客製・自動計價</small></div>
+  <div id="clock"></div>
+</header>
+<main>
+<section class="panel">
+  <h2>飲料選單</h2>
+  <div class="categories" id="categories"></div>
+  <div class="menu" id="menu"></div>
+</section>
+<aside class="panel">
+  <div class="cart-head"><h2>🧾 目前訂單</h2><span id="count">0 杯</span></div>
+  <div id="cart" class="cart-items"><div class="empty">尚未選擇飲料<br>點選左側品項開始點餐</div></div>
+  <div class="summary">
+    <div class="row"><span>品項小計</span><strong id="subtotal">$0</strong></div>
+    <div class="row"><span>折扣</span><strong id="discount">$0</strong></div>
+    <div class="row total"><span>應付金額</span><span id="total">$0</span></div>
+    <div class="actions">
+      <button class="clear" onclick="clearCart()">清空訂單</button>
+      <button class="checkout" onclick="checkout()">結帳完成</button>
+    </div>
+    <div class="note">※ 送出後會自動送到後台，有問題請聯絡。</div>
+  </div>
+</aside>
+</main>
+
+<div class="modal-backdrop" id="backdrop">
+ <div class="modal">
+  <h2 id="modalTitle">客製化飲料</h2><div class="muted">請選擇甜度、冰塊與加料</div>
+  <div class="field"><label>甜度</label><div class="options" id="sugar"></div></div>
+  <div class="field"><label>冰塊</label><div class="options" id="ice"></div></div>
+  <div class="field"><label>加料（可複選）</label><div class="options" id="toppings"></div></div>
+  <div class="field"><label>杯型</label><div class="options" id="size"></div></div>
+  <div class="field"><label>備註</label><input id="remark" placeholder="例如：珍珠分開裝、不要吸管"></div>
+  <div class="modal-actions"><button class="cancel" onclick="closeModal()">取消</button><button class="add" onclick="addToCart()">加入訂單</button></div>
+ </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const drinks = [
+ {name: "古早味紅茶", cat: "單品茶", price: 25, emoji: "🧋"},
+  {name: "古早味冬瓜茶(甜度固定)", cat: "單品茶", price: 25, emoji: "🧋"},
+  {name: "古香麥茶", cat: "單品茶", price: 25, emoji: "🧋"},
+  {name: "茉香綠茶", cat: "單品茶", price: 25, emoji: "🧋"},
+  {name: "台灣高山青茶", cat: "單品茶", price: 25, emoji: "🧋"},
+  {name: "黃金烏龍茶", cat: "單品茶", price: 25, emoji: "🧋"},
+  {name: "烏龍綠茶", cat: "單品茶", price: 25, emoji: "🧋"},
+  {name: "烏龍青茶", cat: "單品茶", price: 25, emoji: "🧋"},
+
+  // ===== 特調茶 =====
+  {name: "冬瓜紅茶(甜度固定)", cat: "特調茶", price: 30, emoji: "🍹"},
+  {name: "冬瓜綠茶(甜度固定)", cat: "特調茶", price: 30, emoji: "🍹"},
+  {name: "冬瓜青茶(甜度固定)", cat: "特調茶", price: 30, emoji: "🍹"},
+  {name: "冬瓜麥茶(甜度固定)", cat: "特調茶", price: 30, emoji: "🍹"},
+  {name: "多多綠茶", cat: "特調茶", price: 45, emoji: "🍹"},
+  {name: "多多冬瓜茶(甜度固定)", cat: "特調茶", price: 45, emoji: "🍹"},
+
+  // ===== 果茶特調 =====
+  {name: "檸檬紅茶", cat: "果茶特調", price: 40, emoji: "🍋"},
+  {name: "檸檬綠茶", cat: "果茶特調", price: 40, emoji: "🍋"},
+  {name: "檸檬冬瓜茶(甜度固定)", cat: "果茶特調", price: 40, emoji: "🍋"},
+  {name: "檸檬青茶", cat: "果茶特調", price: 40, emoji: "🍋"},
+  {name: "多多檸檬", cat: "果茶特調", price: 45, emoji: "🍋"},
+  {name: "檸檬烏龍蜜", cat: "果茶特調", price: 45, emoji: "🍋"},
+  {name: "洛神烏梅(甜度固定)", cat: "果茶特調", price: 40, emoji: "🍋"},
+  {name: "洛神冬瓜(甜度固定)", cat: "果茶特調", price: 45, emoji: "🍋"},
+  {name: "脆梅綠茶", cat: "果茶特調", price: 45, emoji: "🍋"},
+
+  // ===== 香濃乳茶 =====
+  {name: "金蘋果紅茶", cat: "香濃乳茶", price: 50, emoji: "🥛"},
+  {name: "金蘋果綠茶", cat: "香濃乳茶", price: 50, emoji: "🥛"},
+  {name: "金蘋果鮮奶(甜度固定)", cat: "香濃乳茶", price: 75, emoji: "🥛"},
+  {name: "珍珠鮮奶茶", cat: "香濃乳茶", price: 60, emoji: "🥛"},
+  {name: "鮮奶紅茶", cat: "香濃乳茶", price: 50, emoji: "🥛"},
+  {name: "鮮奶綠茶", cat: "香濃乳茶", price: 50, emoji: "🥛"},
+  {name: "鮮奶烏龍", cat: "香濃乳茶", price: 50, emoji: "🥛"},
+  {name: "鮮奶冬瓜茶(甜度固定)", cat: "香濃乳茶", price: 50, emoji: "🥛"},
+  {name: "鮮奶青茶", cat: "香濃乳茶", price: 50, emoji: "🥛"},
+  {name: "鮮奶麥茶", cat: "香濃乳茶", price: 50, emoji: "🥛"},
+  {name: "鮮奶茶黑糖(甜度固定)", cat: "香濃乳茶", price: 55, emoji: "🥛"},
+  {name: "鮮奶茶焦糖", cat: "香濃乳茶", price: 55, emoji: "🥛"},
+  {name: "豆奶紅茶", cat: "香濃乳茶", price: 40, emoji: "🥛"},
+  {name: "豆奶冬瓜茶(甜度固定)", cat: "香濃乳茶", price: 40, emoji: "🥛"},
+  {name: "豆奶麥茶", cat: "香濃乳茶", price: 40, emoji: "🥛"},
+  {name: "豆奶鮮奶(甜度固定)", cat: "香濃乳茶", price: 70, emoji: "🥛"},
+  {name: "阿華田", cat: "香濃乳茶", price: 50, emoji: "🥛"},
+  {name: "咖啡鮮奶", cat: "香濃乳茶", price: 55, emoji: "🥛"},
+  {name: "咖啡紅茶鮮奶", cat: "香濃乳茶", price: 60, emoji: "🥛"},
+
+  // ===== 多酚茶飲 =====
+  {name: "多酚綠茶", cat: "多酚茶飲", price: 45, emoji: "🍵"},
+  {name: "多酚檸檬", cat: "多酚茶飲", price: 45, emoji: "🍵"},
+  {name: "多酚冬瓜(甜度固定)", cat: "多酚茶飲", price: 50, emoji: "🍵"},
+  {name: "多酚鮮奶(甜度固定)", cat: "多酚茶飲", price: 75, emoji: "🍵"},
+
+  // ===== 季節限定 =====
+  {name: "甘蔗青茶", cat: "季節限定", price: 50, emoji: "🍓"},
+  {name: "甘蔗檸檬", cat: "季節限定", price: 50, emoji: "🍓"},
+  {name: "柳橙綠茶", cat: "季節限定", price: 50, emoji: "🍓"},
+  {name: "柳橙等多多", cat: "季節限定", price: 60, emoji: "🍓"},
+  {name: "鳳梨青茶(甜度固定)", cat: "季節限定", price: 55, emoji: "🍓"},
+  {name: "鳳梨冰茶(甜度固定)", cat: "季節限定", price: 50, emoji: "🍓"},
+  {name: "百香果綠茶", cat: "季節限定", price: 50, emoji: "🍓"},
+  {name: "百香果等多多", cat: "季節限定", price: 60, emoji: "🍓"}
+
+
+];
+
+// ⚠️ 【關鍵步驟】請將下方雙引號內換成你在上面「步驟 1」管理部署新版本拿到的最新 exec 網址！
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbymOU4KDRi_KcU8UYzSMNsoXcPAWXxITkvycJjuL2knfNyqT3YVT6gVfPGvzSatdCPW/exec";
+
+const categories = ["全部", ...new Set(drinks.map(d => d.cat))];
+let activeCat = "全部", selectedDrink = null, cart = [];
+const toppingList = [["珍珠", 10], ["椰果", 10], ["仙草", 10]];
+
+window.sugarChoice = "半糖";
+window.iceChoice = "微冰";
+window.sizeChoice = "中杯";
+let toppingChoice = [];
+
+function money(n) { return "\$" + n.toLocaleString("zh-TW") }
+
+function renderCategories() {
+ const el = document.getElementById("categories"); if(!el) return; el.innerHTML = "";
+ categories.forEach(c => {
+  let b = document.createElement("button");
+  b.className = "cat" + (c === activeCat ? " active" : "");
+  b.textContent = c;
+  b.onclick = () => { activeCat = c; renderCategories(); renderMenu() };
+  el.appendChild(b)
+ })
+}
+
+function renderMenu() {
+ const el = document.getElementById("menu"); if(!el) return; el.innerHTML = "";
+ drinks.filter(d => activeCat === "全部" || d.cat === activeCat).forEach(d => {
+  let b = document.createElement("button"); b.className = "drink";
+  b.innerHTML = `<div><div class="emoji">${d.emoji}</div><div class="drink-name">${d.name}</div><small>${d.cat}</small></div><div class="price">${money(d.price)}　＋</div>`;
+  b.onclick = () => openModal(d); el.appendChild(b)
+ })
+}
+
+function renderToppingOptions() {
+ const el = document.getElementById("toppings"); if(!el) return; el.innerHTML = "";
+ toppingList.forEach(t => {
+  const name = t[0];
+  const tPrice = t[1];
+  let b = document.createElement("button");
+  b.className = "opt" + (toppingChoice.includes(name) ? " selected" : "");
+  b.textContent = `${name} (+${tPrice})`;
+  b.onclick = () => {
+   if (toppingChoice.includes(name)) {
+    toppingChoice.splice(toppingChoice.indexOf(name), 1);
+   } else {
+    toppingChoice.push(name);
+   }
+   renderToppingOptions();
+  };
+  el.appendChild(b);
+ });
+}
+
+function setupSingle(id, items, varName) {
+ const el = document.getElementById(id); if(!el) return; el.innerHTML = "";
+ items.forEach(v => {
+  let b = document.createElement("button");
+  b.className = "opt" + (window[varName] === v ? " selected" : "");
+  b.textContent = v;
+  b.onclick = () => {
+   window[varName] = v;
+   setupSingle(id, items, varName);
+  };
+  el.appendChild(b)
+ })
+}
+
+function openModal(d) {
+ selectedDrink = d;
+ window.sugarChoice = d.isFixed ? "固定" : "半糖";
+ window.iceChoice = "微冰";
+ window.sizeChoice = "中杯";
+ toppingChoice = [];
+ 
+ if(document.getElementById("remark")) document.getElementById("remark").value = "";
+ document.getElementById("modalTitle").textContent = d.name + " ｜ " + money(d.price);
+ 
+ const sugarItems = d.isFixed ? ["固定"] : ["正常糖", "少糖", "半糖", "微糖", "無糖"];
+ setupSingle("sugar", sugarItems, "sugarChoice");
+ setupSingle("ice", ["正常冰", "少冰", "微冰", "去冰", "熱飲"], "iceChoice");
+ setupSingle("size", ["中杯", "大杯"], "sizeChoice");
+ renderToppingOptions();
+ 
+ document.getElementById("backdrop").style.display = "flex";
+}
+
+function closeModal() { document.getElementById("backdrop").style.display = "none" }
+
+function addToCart() {
+ const toppingCost = toppingChoice.reduce((s, t) => s + toppingList.find(x => x[0] === t)[1], 0);
+ const sizeBox = document.getElementById("size");
+ let realSelectedSize = window.sizeChoice;
+ if(sizeBox) {
+     const activeSizeBtn = sizeBox.querySelector(".opt.selected");
+     if(activeSizeBtn) realSelectedSize = activeSizeBtn.textContent.trim();
+ }
+ const sizeCost = realSelectedSize === "大杯" ? 5 : 0;
+ 
+ const item = {
+  id: Date.now() + Math.random(),
+  name: selectedDrink.name,
+  base: selectedDrink.price,
+  price: selectedDrink.price + toppingCost + sizeCost,
+  sugar: window.sugarChoice,
+  ice: window.iceChoice,
+  toppings: [...toppingChoice],
+  size: realSelectedSize,
+  remark: document.getElementById("remark") ? document.getElementById("remark").value.trim() : "",
+  qty: 1
+ };
+ 
+ cart.push(item);
+ closeModal();
+ renderCart();
+ if(typeof showToast === "function") showToast("已加入：" + item.name);
+}
+
+function renderCart() {
+ const el = document.getElementById("cart"); if(!el) return; el.innerHTML = "";
+ if(!cart.length) { el.innerHTML = '<div class="empty">尚未選擇飲料<br>點選左側品項開始點餐</div>'; }
+ 
+ cart.forEach(it => {
+  const div = document.createElement("div"); div.className = "cart-item";
+  const details = [it.size, it.sugar, it.ice, ...it.toppings].join("・");
+  div.innerHTML = `<div class="item-top"><span>${it.name}</span><span>${money(it.price * it.qty)}</span></div>
+   <div class="item-sub">${details}${it.remark ? "｜備註：" + escapeHtml(it.remark) : ""}</div>
+   <div class="item-controls"><button class="qty">−</button><strong>${it.qty}</strong><button class="qty">＋</button><small>${money(it.price)} / 杯</small><button class="remove">刪除</button></div>`;
+  
+  const buttons = div.querySelectorAll("button");
+  buttons[0].onclick = () => { it.qty--; if(it.qty <= 0) cart = cart.filter(x => x.id !== it.id); renderCart() };
+  buttons[1].onclick = () => { it.qty++; renderCart() };
+  buttons[2].onclick = () => { cart = cart.filter(x => x.id !== it.id); renderCart() };
+  el.appendChild(div)
+ });
+ 
+ const qty = cart.reduce((s, x) => s + x.qty, 0), sum = cart.reduce((s, x) => s + x.price * x.qty, 0);
+ if(document.getElementById("count")) document.getElementById("count").textContent = qty + " 杯";
+ if(document.getElementById("subtotal")) document.getElementById("subtotal").textContent = money(sum);
+ if(document.getElementById("discount")) document.getElementById("discount").textContent = money(0);
+ if(document.getElementById("total")) document.getElementById("total").textContent = money(sum);
+}
+
+function clearCart() { if(!cart.length) return; if(confirm("確定要清空目前訂單嗎？")) { cart = []; renderCart() } }
+
+// 核心變更：依照新需求詢問部門、姓名、備註並傳送至對應欄位
+function checkout() {
+ if(!cart.length) { if(typeof showToast === "function") showToast("請先選擇飲料"); return; }
+ 
+ // 改為填寫部門與姓名
+ const deptName = prompt("【訂購部門】請輸入您的部門（例如：會計部、製造課）：");
+ if(!deptName) { alert("未填寫部門，訂單取消。"); return; }
+ const uName = prompt("【訂購人姓名】請輸入您的名字：");
+ if(!uName) { alert("未填寫姓名，訂單取消。"); return; }
+ const uRemark = prompt("【訂單備註】請輸入備註（如無請保留空白）：", "");
+
+ const sum = cart.reduce((s, x) => s + x.price * x.qty, 0);
+ 
+ // 彙整純飲料品項明細
+ const drinkLines = cart.map(x => {
+     let tStr = x.toppings.length ? `(+${x.toppings.join('+')})` : '';
+     return `${x.name} x ${x.qty}杯 [${x.size}/${x.sugar}/${x.ice}${tStr}]`;
+ }).join(" 、 ");
+ 
+ if(typeof showToast === "function") showToast("正在向雲端試算表發送訂單...");
+
+ // 重新包裝成 6 個獨立變數的 JSON 封包，完美對齊 A 到 F 欄
+ const payload = {
+     department: deptName,
+     userName: uName,
+     orderList: drinkLines,
+     userRemark: uRemark || "無",
+     total: sum
+ };
+
+ fetch(GOOGLE_SCRIPT_URL, {
+     method: 'POST',
+     mode: 'no-cors',
+     headers: { 'Content-Type': 'application/json' },
+     body: JSON.stringify(payload)
+ })
+ .then(() => {
+     alert(`🎉 訂單已成功送出！\n部門：${deptName}\n訂購人：${uName}\n總金額：${money(sum)} 元\n資料已上傳成功！`);
+     cart = [];
+     renderCart();
+ })
+ .catch(err => {
+     alert("傳送失敗，請確認第 20 行網址：" + err);
+ });
+}
+
+function escapeHtml(s) { return s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "'" }[c])) }
+function showToast(msg) { const t = document.getElementById("toast"); if(!t) return; t.textContent = msg; t.style.display = "block"; setTimeout(() => t.style.display = "none", 1800) }
+function tick() { const clock = document.getElementById("clock"); if(clock) clock.textContent = new Date().toLocaleString("zh-TW", { hour12: false }) }
+
+renderCategories(); renderMenu(); renderCart(); tick(); setInterval(tick, 1000);
+</script>
+
+
+</body>
+</html>
