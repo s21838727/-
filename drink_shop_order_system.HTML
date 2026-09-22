@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>回憶小時候沙鹿屏西店飲料店 互動點餐系統</title>
 <style>
-:root{--green:#176b50;--light:#f3f6f3;--orange:#f2a65a;--ink:#24332c}
+:root{--green:#b84a39;--light:#fbf6f5;--orange:#e5934c;--ink:#332422}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei",Arial,sans-serif;background:var(--light);color:var(--ink)}
 header{background:var(--green);color:white;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 header h1{margin:0;font-size:24px}header small{opacity:.85}
@@ -87,7 +87,7 @@ select,input{font:inherit;padding:10px;border:1px solid #d9e2db;border-radius:9p
 <script>
 const drinks = [
  {name: "古早味紅茶", cat: "單品茶", price: 25, emoji: "🧋"},
-  {name: "古早味冬瓜茶(甜度固定)", cat: "單品茶", price: 25, emoji: "🧋"},
+  {name: "古早味冬瓜茶(甜度固定)", cat: "單品茶", price: 25, emoji: "🧋", isFixed: true},
   {name: "古香麥茶", cat: "單品茶", price: 25, emoji: "🧋"},
   {name: "茉香綠茶", cat: "單品茶", price: 25, emoji: "🧋"},
   {name: "台灣高山青茶", cat: "單品茶", price: 25, emoji: "🧋"},
@@ -96,41 +96,41 @@ const drinks = [
   {name: "烏龍青茶", cat: "單品茶", price: 25, emoji: "🧋"},
 
   // ===== 特調茶 =====
-  {name: "冬瓜紅茶(甜度固定)", cat: "特調茶", price: 30, emoji: "🍹"},
-  {name: "冬瓜綠茶(甜度固定)", cat: "特調茶", price: 30, emoji: "🍹"},
-  {name: "冬瓜青茶(甜度固定)", cat: "特調茶", price: 30, emoji: "🍹"},
-  {name: "冬瓜麥茶(甜度固定)", cat: "特調茶", price: 30, emoji: "🍹"},
+  {name: "冬瓜紅茶(甜度固定)", cat: "特調茶", price: 30, emoji: "🍹", isFixed: true},
+  {name: "冬瓜綠茶(甜度固定)", cat: "特調茶", price: 30, emoji: "🍹", isFixed: true},
+  {name: "冬瓜青茶(甜度固定)", cat: "特調茶", price: 30, emoji: "🍹", isFixed: true},
+  {name: "冬瓜麥茶(甜度固定)", cat: "特調茶", price: 30, emoji: "🍹", isFixed: true},
   {name: "多多綠茶", cat: "特調茶", price: 45, emoji: "🍹"},
-  {name: "多多冬瓜茶(甜度固定)", cat: "特調茶", price: 45, emoji: "🍹"},
+  {name: "多多冬瓜茶(甜度固定)", cat: "特調茶", price: 45, emoji: "🍹", isFixed: true},
 
   // ===== 果茶特調 =====
   {name: "檸檬紅茶", cat: "果茶特調", price: 40, emoji: "🍋"},
   {name: "檸檬綠茶", cat: "果茶特調", price: 40, emoji: "🍋"},
-  {name: "檸檬冬瓜茶(甜度固定)", cat: "果茶特調", price: 40, emoji: "🍋"},
+  {name: "檸檬冬瓜茶(甜度固定)", cat: "果茶特調", price: 40, emoji: "🍋", isFixed: true},
   {name: "檸檬青茶", cat: "果茶特調", price: 40, emoji: "🍋"},
   {name: "多多檸檬", cat: "果茶特調", price: 45, emoji: "🍋"},
   {name: "檸檬烏龍蜜", cat: "果茶特調", price: 45, emoji: "🍋"},
-  {name: "洛神烏梅(甜度固定)", cat: "果茶特調", price: 40, emoji: "🍋"},
-  {name: "洛神冬瓜(甜度固定)", cat: "果茶特調", price: 45, emoji: "🍋"},
+  {name: "洛神烏梅(甜度固定)", cat: "果茶特調", price: 40, emoji: "🍋", isFixed: true},
+  {name: "洛神冬瓜(甜度固定)", cat: "果茶特調", price: 45, emoji: "🍋", isFixed: true},
   {name: "脆梅綠茶", cat: "果茶特調", price: 45, emoji: "🍋"},
 
   // ===== 香濃乳茶 =====
   {name: "金蘋果紅茶", cat: "香濃乳茶", price: 50, emoji: "🥛"},
   {name: "金蘋果綠茶", cat: "香濃乳茶", price: 50, emoji: "🥛"},
-  {name: "金蘋果鮮奶(甜度固定)", cat: "香濃乳茶", price: 75, emoji: "🥛"},
+  {name: "金蘋果鮮奶(甜度固定)", cat: "香濃乳茶", price: 75, emoji: "🥛", isFixed: true},
   {name: "珍珠鮮奶茶", cat: "香濃乳茶", price: 60, emoji: "🥛"},
   {name: "鮮奶紅茶", cat: "香濃乳茶", price: 50, emoji: "🥛"},
   {name: "鮮奶綠茶", cat: "香濃乳茶", price: 50, emoji: "🥛"},
   {name: "鮮奶烏龍", cat: "香濃乳茶", price: 50, emoji: "🥛"},
-  {name: "鮮奶冬瓜茶(甜度固定)", cat: "香濃乳茶", price: 50, emoji: "🥛"},
+  {name: "鮮奶冬瓜茶(甜度固定)", cat: "香濃乳茶", price: 50, emoji: "🥛", isFixed: true},
   {name: "鮮奶青茶", cat: "香濃乳茶", price: 50, emoji: "🥛"},
   {name: "鮮奶麥茶", cat: "香濃乳茶", price: 50, emoji: "🥛"},
-  {name: "鮮奶茶黑糖(甜度固定)", cat: "香濃乳茶", price: 55, emoji: "🥛"},
+  {name: "鮮奶茶黑糖(甜度固定)", cat: "香濃乳茶", price: 55, emoji: "🥛", isFixed: true},
   {name: "鮮奶茶焦糖", cat: "香濃乳茶", price: 55, emoji: "🥛"},
   {name: "豆奶紅茶", cat: "香濃乳茶", price: 40, emoji: "🥛"},
-  {name: "豆奶冬瓜茶(甜度固定)", cat: "香濃乳茶", price: 40, emoji: "🥛"},
+  {name: "豆奶冬瓜茶(甜度固定)", cat: "香濃乳茶", price: 40, emoji: "🥛", isFixed: true},
   {name: "豆奶麥茶", cat: "香濃乳茶", price: 40, emoji: "🥛"},
-  {name: "豆奶鮮奶(甜度固定)", cat: "香濃乳茶", price: 70, emoji: "🥛"},
+  {name: "豆奶鮮奶(甜度固定)", cat: "香濃乳茶", price: 70, emoji: "🥛", isFixed: true},
   {name: "阿華田", cat: "香濃乳茶", price: 50, emoji: "🥛"},
   {name: "咖啡鮮奶", cat: "香濃乳茶", price: 55, emoji: "🥛"},
   {name: "咖啡紅茶鮮奶", cat: "香濃乳茶", price: 60, emoji: "🥛"},
@@ -138,16 +138,16 @@ const drinks = [
   // ===== 多酚茶飲 =====
   {name: "多酚綠茶", cat: "多酚茶飲", price: 45, emoji: "🍵"},
   {name: "多酚檸檬", cat: "多酚茶飲", price: 45, emoji: "🍵"},
-  {name: "多酚冬瓜(甜度固定)", cat: "多酚茶飲", price: 50, emoji: "🍵"},
-  {name: "多酚鮮奶(甜度固定)", cat: "多酚茶飲", price: 75, emoji: "🍵"},
+  {name: "多酚冬瓜(甜度固定)", cat: "多酚茶飲", price: 50, emoji: "🍵", isFixed: true},
+  {name: "多酚鮮奶(甜度固定)", cat: "多酚茶飲", price: 75, emoji: "🍵", isFixed: true},
 
   // ===== 季節限定 =====
   {name: "甘蔗青茶", cat: "季節限定", price: 50, emoji: "🍓"},
   {name: "甘蔗檸檬", cat: "季節限定", price: 50, emoji: "🍓"},
   {name: "柳橙綠茶", cat: "季節限定", price: 50, emoji: "🍓"},
   {name: "柳橙等多多", cat: "季節限定", price: 60, emoji: "🍓"},
-  {name: "鳳梨青茶(甜度固定)", cat: "季節限定", price: 55, emoji: "🍓"},
-  {name: "鳳梨冰茶(甜度固定)", cat: "季節限定", price: 50, emoji: "🍓"},
+  {name: "鳳梨青茶(甜度固定)", cat: "季節限定", price: 55, emoji: "🍓", isFixed: true},
+  {name: "鳳梨冰茶(甜度固定)", cat: "季節限定", price: 50, emoji: "🍓", isFixed: true},
   {name: "百香果綠茶", cat: "季節限定", price: 50, emoji: "🍓"},
   {name: "百香果等多多", cat: "季節限定", price: 60, emoji: "🍓"}
 
