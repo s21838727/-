@@ -161,9 +161,9 @@ const categories = ["全部", ...new Set(drinks.map(d => d.cat))];
 let activeCat = "全部", selectedDrink = null, cart = [];
 const toppingList = [["珍珠", 10], ["椰果", 10], ["仙草", 10]];
 
-window.sugarChoice = "半糖";
+window.sugarChoice = "微糖";
 window.iceChoice = "微冰";
-window.sizeChoice = "中杯";
+window.sizeChoice = "大杯";
 let toppingChoice = [];
 
 function money(n) { return "\$" + n.toLocaleString("zh-TW") }
@@ -224,9 +224,9 @@ function setupSingle(id, items, varName) {
 
 function openModal(d) {
  selectedDrink = d;
- window.sugarChoice = d.isFixed ? "固定" : "半糖";
+ window.sugarChoice = d.isFixed ? "固定" : "微糖";
  window.iceChoice = "微冰";
- window.sizeChoice = "中杯";
+ window.sizeChoice = "大杯";
  toppingChoice = [];
  
  if(document.getElementById("remark")) document.getElementById("remark").value = "";
@@ -304,7 +304,7 @@ function checkout() {
  if(!cart.length) { if(typeof showToast === "function") showToast("請先選擇飲料"); return; }
  
  // 改為填寫部門與姓名
- const deptName = prompt("【訂購部門】請輸入您的部門（例如：會計部、製造課）：");
+ const deptName = prompt("【訂購部門】請輸入您的部門（例如：技術處、打樣課、創研）：");
  if(!deptName) { alert("未填寫部門，訂單取消。"); return; }
  const uName = prompt("【訂購人姓名】請輸入您的名字：");
  if(!uName) { alert("未填寫姓名，訂單取消。"); return; }
